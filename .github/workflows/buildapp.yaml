@@ -31,10 +31,12 @@ jobs:
         run: docker images
       - name: Run Containers
         run: docker compose up -d
-      - name: Sleep for 30 seconds
+      - name: Sleep for 60 seconds
         uses: jakejarvis/wait-action@master
         with:
-          time: '30s'
+          time: '60s'
+      - name: Run JUnit Tests
+        run: mvn -f pom.xml --batch-mode --batch-mode --update-snapshots test
       - name: Running Containers
         run: docker ps
       - name: Stop Containers
