@@ -3,11 +3,11 @@ package com.bestdevelloperarchi.revurestapi;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
-class RevurestapiApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
+class RevurestapiApplicationTest {
+    @Test
+    void contextLoads() {
+    }
 
 }
