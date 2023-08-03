@@ -8,6 +8,7 @@ import com.bestdevelloperarchi.revurestapi.exceptions.EmployeeNotFoundException;
 import com.bestdevelloperarchi.revurestapi.repositories.EmployeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
+    @CacheEvict(value = {"employees","employee"}, allEntries = true)
     public EmployeeResponse saveEmployee(EmployeeRequest employeeRequest) {
         if(employeRepository.existsByEmailId(employeeRequest.getEmailId())){
             throw new EmailAlreadyExistsException();
@@ -42,7 +44,8 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
-    @Cacheable("employee")
+    @Cacheable(value = "employee",key = "#employeeId")
+//    @CacheEvict(value = {"employee","employees"}, allEntries = true)
     public EmployeeResponse findEmployeeById(Long employeeId) {
         doLongRunningTask();
         if(employeRepository.findById(employeeId).isEmpty()){
@@ -56,6 +59,8 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
+//    @CacheEvict(value = "employee", key = "#employeeId")
+    @CacheEvict(value = {"employee","employees"}, allEntries = true)
     public void deleteEmp(Long employeeId) {
         if(employeRepository.findById(employeeId).isEmpty()){
             throw new EmployeeNotFoundException();
@@ -69,6 +74,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
+    @CacheEvict(value = "employee", key = "#employeeId")
     public EmployeeResponse updateEmployee(Long employeeId, EmployeeRequest employeeRequest) {
         if(employeRepository.findById(employeeId).isEmpty()){
             throw new EmployeeNotFoundException();

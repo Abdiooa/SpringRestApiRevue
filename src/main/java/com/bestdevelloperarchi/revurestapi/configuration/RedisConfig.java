@@ -1,8 +1,11 @@
 package com.bestdevelloperarchi.revurestapi.configuration;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -42,13 +45,13 @@ The "employees" cache is configured to have a TTL of 1 minute
 *  using the myDefaultCacheConfig(Duration.ofMinutes(1)) method.
 The "employee" cache is also configured to have a TTL of 1 minute using the same method.
     * */
-    @Bean
+    @Bean()
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory){
         RedisCacheConfiguration configuration = myDefaultCacheConfig(Duration.ofMinutes(10)).disableCachingNullValues();
 
         return RedisCacheManager.builder(redisConnectionFactory())
                 .cacheDefaults(configuration)
-                .withCacheConfiguration("employees",myDefaultCacheConfig(Duration.ofMinutes(1)))
+                .withCacheConfiguration("employees",myDefaultCacheConfig(Duration.ofMinutes(5)))
                 .withCacheConfiguration("employee",myDefaultCacheConfig(Duration.ofMinutes(1)))
                 .build();
     }
@@ -66,5 +69,13 @@ The "employee" cache is also configured to have a TTL of 1 minute using the same
                 .defaultCacheConfig()
                 .entryTtl(duration)
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+    }
+    @EventListener(ContextClosedEvent.class)
+    public void onApplicationShutdown() {
+        // Optionally, you can clear the cache when the application is shutting down
+        RedisCacheManager cacheManager = cacheManager(redisConnectionFactory());
+        if (cacheManager != null) {
+            cacheManager.getCacheNames().forEach(cacheName -> cacheManager.getCache(cacheName).clear());
+        }
     }
 }
