@@ -8,6 +8,8 @@ import com.bestdevelloperarchi.revurestapi.exceptions.EmployeeNotFoundException;
 import com.bestdevelloperarchi.revurestapi.repositories.EmployeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,10 +19,13 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@EnableCaching
 public class EmployeeServiceImpl implements EmployeeService{
     private final EmployeRepository employeRepository;
     @Override
+    @Cacheable("employees")
     public List<EmployeeResponse> getAllEmployees() {
+        doLongRunningTask();
         return employeRepository.findAll().stream().map(this::mapToPersonResponse).collect(Collectors.toList());
     }
 
@@ -37,7 +42,9 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
+    @Cacheable("employee")
     public EmployeeResponse findEmployeeById(Long employeeId) {
+        doLongRunningTask();
         if(employeRepository.findById(employeeId).isEmpty()){
             throw new EmployeeNotFoundException();
         }
@@ -112,5 +119,12 @@ public class EmployeeServiceImpl implements EmployeeService{
                 .mobileNo(employee.getMobileNo())
                 .emailId(employee.getEmailId())
                 .build();
+    }
+    private void doLongRunningTask() {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
